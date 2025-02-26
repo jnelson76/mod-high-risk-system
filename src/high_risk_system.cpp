@@ -9,7 +9,7 @@
 #include "Chat.h"
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 123330 // Custom chest with data1 = 0, no default loot
+#define GOB_CHEST 173304 // Unlocked chest, no default loot
 
 void ReskillCheck(Player* killer, Player* killed)
 {
@@ -47,7 +47,7 @@ public:
             {
                 killer->AddGameObject(go);
                 go->SetOwnerGUID(ObjectGuid::Empty);
-                go->loot.clear(); // Extra precaution, though data1 = 0 should ensure no default loot
+                go->loot.clear(); // Clear any potential default loot as a precaution
 
                 // Equipment slots
                 for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
