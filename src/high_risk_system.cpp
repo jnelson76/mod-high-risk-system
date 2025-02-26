@@ -59,7 +59,7 @@ public:
                 go->SetOwnerGUID(ObjectGuid::Empty);
                 go->loot.clear(); // Ensure no default loot
                 go->SetGoState(GO_STATE_READY); // Try GO_STATE_READY for looting
-                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_CONDITION); // Remove more potential blocking flags
+                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_COND); // Use correct flag
                 printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS)); // Debug state and flags
 
                 // Equipment slots
