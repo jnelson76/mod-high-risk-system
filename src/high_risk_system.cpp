@@ -1,3 +1,4 @@
+
 #include "Player.h"
 #include "Creature.h"
 #include "AccountMgr.h"
@@ -14,37 +15,18 @@
 
 void ReskillCheck(Player* killer, Player* killed)
 {
-    printf("ReskillCheck: Checking killer IP: %s, killer GUID: %u, killed GUID: %u\n", 
-           killer->GetSession()->GetRemoteAddress().c_str(), killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
-    
     if (killer->GetSession()->GetRemoteAddress() == killed->GetSession()->GetRemoteAddress() || killer->GetGUID() == killed->GetGUID())
-    {
-        printf("ReskillCheck: Blocked (same IP or self-kill)\n");
         return;
-    }
     if (!killer->GetGUID().IsPlayer())
-    {
-        printf("ReskillCheck: Blocked (killer not a player)\n");
         return;
-    }
     if (killed->HasAura(SPELL_SICKNESS))
-    {
-        printf("ReskillCheck: Blocked (killed has sickness)\n");
         return;
-    }
     if (killer->GetLevel() - 5 >= killed->GetLevel())
-    {
-        printf("ReskillCheck: Blocked (level difference too high)\n");
         return;
-    }
     AreaTableEntry const* area = sAreaTableStore.LookupEntry(killed->GetAreaId());
     AreaTableEntry const* area2 = sAreaTableStore.LookupEntry(killer->GetAreaId());
     if (area->IsSanctuary() || area2->IsSanctuary())
-    {
-        printf("ReskillCheck: Blocked (in sanctuary)\n");
         return;
-    }
-    printf("ReskillCheck: Passed all checks\n");
 }
 
 class HighRiskSystem : public PlayerScript
@@ -79,7 +61,6 @@ public:
                 go->loot.clear(); // Ensure no default loot
                 go->SetGoState(GO_STATE_READY); // Ensure it’s lootable
                 go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_COND); // Ensure it’s interactive
-                go->SetRespawnTime(3600); // Set a long respawn time (1 hour) to prevent despawning
                 printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS)); // Debug state and flags
 
                 // Equipment slots
@@ -87,15 +68,14 @@ public:
                 {
                     if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
-                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Ensures both uncommon (2) and rare (3) drop
+                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n", 
-                                   itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.c_str());
+                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name from DB: '%s')\n", itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.empty() ? "EMPTY" : itemName.c_str());
                             if (!itemName.empty())
                             {
-                                // Use plain text, no %s to avoid formatting issues
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                    pItem->GetEntry(), itemName.c_str());
                             }
                             else
                             {
@@ -103,7 +83,6 @@ public:
                                 printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
                             }
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
-                            printf("Added item to chest loot: Entry %u, Name: %s\n", pItem->GetEntry(), itemName.c_str());
                             killed->DestroyItem(INVENTORY_SLOT_BAG_0, pItem->GetSlot(), true);
                             count++;
                         }
@@ -115,15 +94,14 @@ public:
                 {
                     if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
-                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Ensures both uncommon (2) and rare (3) drop
+                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n", 
-                                   itemName.c_str(), pItem->GetEntry(), i, itemName.c_str());
+                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name from DB: '%s')\n", itemName.c_str(), pItem->GetEntry(), i, itemName.empty() ? "EMPTY" : itemName.c_str());
                             if (!itemName.empty())
                             {
-                                // Use plain text, no %s
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                    pItem->GetEntry(), itemName.c_str());
                             }
                             else
                             {
@@ -131,7 +109,6 @@ public:
                                 printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
                             }
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
-                            printf("Added item to chest loot: Entry %u, Name: %s\n", pItem->GetEntry(), itemName.c_str());
                             killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
                             count++;
                         }
@@ -147,15 +124,14 @@ public:
                         {
                             if (Item* pItem = killed->GetItemByPos(i, j))
                             {
-                                if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Ensures both uncommon (2) and rare (3) drop
+                                if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                                 {
                                     std::string itemName = pItem->GetTemplate()->Name1;
-                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name for message: '%s')\n", 
-                                           itemName.c_str(), pItem->GetEntry(), i, j, itemName.c_str());
+                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name from DB: '%s')\n", itemName.c_str(), pItem->GetEntry(), i, j, itemName.empty() ? "EMPTY" : itemName.c_str());
                                     if (!itemName.empty())
                                     {
-                                        // Use plain text, no %s
-                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
+                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                            pItem->GetEntry(), itemName.c_str());
                                     }
                                     else
                                     {
@@ -163,7 +139,6 @@ public:
                                         printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
                                     }
                                     go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
-                                    printf("Added item to chest loot: Entry %u, Name: %s\n", pItem->GetEntry(), itemName.c_str());
                                     killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
                                     count++;
                                 }
@@ -176,7 +151,7 @@ public:
             }
             else
             {
-                printf("Failed to spawn chest with entry %u - Reason: %s\n", GOB_CHEST, go ? "Unknown" : "SummonGameObject failed");
+                printf("Failed to spawn chest with entry %u\n", GOB_CHEST);
             }
         }
         else
