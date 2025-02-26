@@ -9,7 +9,7 @@
 #include "Chat.h"
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 176307 // Unlocked chest, no default loot
+#define GOB_CHEST 177726 // Unlocked chest, no default loot
 
 void ReskillCheck(Player* killer, Player* killed)
 {
