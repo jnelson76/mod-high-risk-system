@@ -7,9 +7,10 @@
 #include "Pet.h"
 #include "Item.h"
 #include "Chat.h"
+#include "GameObject.h" // For GO_STATE_ACTIVE
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 10 // Dented Footlocker, simple unlocked container with no loot or traps
+#define GOB_CHEST 177726 // Tool Bucket, should be a safe, unlocked container
 
 void ReskillCheck(Player* killer, Player* killed)
 {
@@ -57,6 +58,7 @@ public:
                 killer->AddGameObject(go);
                 go->SetOwnerGUID(ObjectGuid::Empty);
                 go->loot.clear(); // Ensure no default loot
+                go->SetGoState(GO_STATE_ACTIVE); // Ensure it’s visible and lootable
 
                 // Equipment slots
                 for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
@@ -118,7 +120,7 @@ public:
                     }
                 }
 
-                printf("Chest loot count: %zu\n", go->loot.items.size()); // Fixed format specifier
+                printf("Chest loot count: %zu\n", go->loot.items.size());
             }
             else
             {
