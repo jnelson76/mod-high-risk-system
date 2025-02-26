@@ -10,7 +10,7 @@
 #include "GameObject.h" // For GO_STATE_READY and GAMEOBJECT_FLAGS
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 179697 // Tool Bucket, should be a safe, unlocked container
+#define GOB_CHEST 179697 // Supply Crate (Gurubashi), cleared loot, should be safe
 
 void ReskillCheck(Player* killer, Player* killed)
 {
@@ -58,8 +58,8 @@ public:
                 killer->AddGameObject(go);
                 go->SetOwnerGUID(ObjectGuid::Empty);
                 go->loot.clear(); // Ensure no default loot
-                go->SetGoState(GO_STATE_READY); // Try GO_STATE_READY for looting
-                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_COND); // Use correct flag
+                go->SetGoState(GO_STATE_READY); // Ensure it’s lootable
+                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_COND); // Ensure it’s interactive
                 printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS)); // Debug state and flags
 
                 // Equipment slots
