@@ -7,7 +7,7 @@
 #include "Pet.h"
 #include "Item.h"
 #include "Chat.h"
-#include "GameObject.h" // For GO_STATE_ACTIVE
+#include "GameObject.h" // For GO_STATE_READY and GAMEOBJECT_FLAGS
 
 #define SPELL_SICKNESS 15007
 #define GOB_CHEST 177726 // Tool Bucket, should be a safe, unlocked container
@@ -58,7 +58,9 @@ public:
                 killer->AddGameObject(go);
                 go->SetOwnerGUID(ObjectGuid::Empty);
                 go->loot.clear(); // Ensure no default loot
-                go->SetGoState(GO_STATE_ACTIVE); // Ensure it’s visible and lootable
+                go->SetGoState(GO_STATE_READY); // Try GO_STATE_READY for looting
+                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_CONDITION); // Remove more potential blocking flags
+                printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS)); // Debug state and flags
 
                 // Equipment slots
                 for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
