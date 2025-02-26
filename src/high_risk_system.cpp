@@ -14,18 +14,37 @@
 
 void ReskillCheck(Player* killer, Player* killed)
 {
+    printf("ReskillCheck: Checking killer IP: %s, killer GUID: %u, killed GUID: %u\n", 
+           killer->GetSession()->GetRemoteAddress().c_str(), killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
+    
     if (killer->GetSession()->GetRemoteAddress() == killed->GetSession()->GetRemoteAddress() || killer->GetGUID() == killed->GetGUID())
+    {
+        printf("ReskillCheck: Blocked (same IP or self-kill)\n");
         return;
+    }
     if (!killer->GetGUID().IsPlayer())
+    {
+        printf("ReskillCheck: Blocked (killer not a player)\n");
         return;
+    }
     if (killed->HasAura(SPELL_SICKNESS))
+    {
+        printf("ReskillCheck: Blocked (killed has sickness)\n");
         return;
+    }
     if (killer->GetLevel() - 5 >= killed->GetLevel())
+    {
+        printf("ReskillCheck: Blocked (level difference too high)\n");
         return;
+    }
     AreaTableEntry const* area = sAreaTableStore.LookupEntry(killed->GetAreaId());
     AreaTableEntry const* area2 = sAreaTableStore.LookupEntry(killer->GetAreaId());
     if (area->IsSanctuary() || area2->IsSanctuary())
+    {
+        printf("ReskillCheck: Blocked (in sanctuary)\n");
         return;
+    }
+    printf("ReskillCheck: Passed all checks\n");
 }
 
 class HighRiskSystem : public PlayerScript
@@ -150,7 +169,7 @@ public:
             }
             else
             {
-                printf("Failed to spawn chest with entry %u\n", GOB_CHEST);
+                printf("Failed to spawn chest with entry %u - Reason: %s\n", GOB_CHEST, go ? "Unknown" : "SummonGameObject failed");
             }
         }
         else
