@@ -9,7 +9,7 @@
 #include "Chat.h"
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 178584 // Unlocked chest, no default loot
+#define GOB_CHEST 10 // Dented Footlocker, simple unlocked container with no loot or traps
 
 void ReskillCheck(Player* killer, Player* killed)
 {
@@ -34,20 +34,29 @@ public:
 
     void OnPVPKill(Player* killer, Player* killed) override
     {
+        printf("OnPVPKill triggered for killer GUID: %u, killed GUID: %u\n", killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
+
         if (!roll_chance_i(70))
+        {
+            printf("Failed 70%% roll chance\n");
             return;
+        }
 
         ReskillCheck(killer, killed);
+        printf("Passed ReskillCheck\n");
 
         if (!killed->IsAlive())
         {
+            printf("Killed player is dead, proceeding\n");
             uint32 count = 0;
 
-            if (GameObject* go = killer->SummonGameObject(GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ(), killed->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 300))
+            GameObject* go = killer->SummonGameObject(GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ(), killed->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 300);
+            if (go)
             {
+                printf("Chest spawned successfully: Entry %u at X: %.2f, Y: %.2f, Z: %.2f\n", GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ());
                 killer->AddGameObject(go);
                 go->SetOwnerGUID(ObjectGuid::Empty);
-                go->loot.clear(); // Clear any potential default loot as a precaution
+                go->loot.clear(); // Ensure no default loot
 
                 // Equipment slots
                 for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
@@ -109,8 +118,16 @@ public:
                     }
                 }
 
-                printf("Chest loot count: %u\n", go->loot.items.size()); // Debug final loot count
+                printf("Chest loot count: %zu\n", go->loot.items.size()); // Fixed format specifier
             }
+            else
+            {
+                printf("Failed to spawn chest with entry %u\n", GOB_CHEST);
+            }
+        }
+        else
+        {
+            printf("Killed player is alive, skipping chest spawn\n");
         }
     }
 };
