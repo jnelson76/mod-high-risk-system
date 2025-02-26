@@ -75,15 +75,13 @@ public:
                                    itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.c_str());
                             if (!itemName.empty())
                             {
-                                // Use plain text with SendSysMessage to avoid PSendSysMessage %s issues
+                                // Use only SendSysMessage with string concatenation (no %s or hyperlinks)
                                 std::string message = "|cffDA70D6You have lost your " + itemName;
                                 ChatHandler(killed->GetSession()).SendSysMessage(message.c_str());
-                                // Test PSendSysMessage with plain text as a fallback (no %s)
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
                             }
                             else
                             {
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
+                                ChatHandler(killed->GetSession()).SendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
                                 printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
                             }
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
@@ -106,15 +104,13 @@ public:
                                    itemName.c_str(), pItem->GetEntry(), i, itemName.c_str());
                             if (!itemName.empty())
                             {
-                                // Use plain text with SendSysMessage
+                                // Use only SendSysMessage with string concatenation
                                 std::string message = "|cffDA70D6You have lost your " + itemName;
                                 ChatHandler(killed->GetSession()).SendSysMessage(message.c_str());
-                                // Test PSendSysMessage with plain text as a fallback
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
                             }
                             else
                             {
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
+                                ChatHandler(killed->GetSession()).SendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
                                 printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
                             }
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
@@ -141,15 +137,13 @@ public:
                                            itemName.c_str(), pItem->GetEntry(), i, j, itemName.c_str());
                                     if (!itemName.empty())
                                     {
-                                        // Use plain text with SendSysMessage
+                                        // Use only SendSysMessage with string concatenation
                                         std::string message = "|cffDA70D6You have lost your " + itemName;
                                         ChatHandler(killed->GetSession()).SendSysMessage(message.c_str());
-                                        // Test PSendSysMessage with plain text as a fallback
-                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
                                     }
                                     else
                                     {
-                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
+                                        ChatHandler(killed->GetSession()).SendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
                                         printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
                                     }
                                     go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
