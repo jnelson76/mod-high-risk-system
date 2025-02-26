@@ -10,7 +10,7 @@
 #include "GameObject.h" // For GO_STATE_READY and GAMEOBJECT_FLAGS
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 177726 // Tool Bucket, should be a safe, unlocked container
+#define GOB_CHEST 179697 // Tool Bucket, should be a safe, unlocked container
 
 void ReskillCheck(Player* killer, Player* killed)
 {
