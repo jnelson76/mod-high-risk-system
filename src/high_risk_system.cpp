@@ -89,10 +89,13 @@ public:
                         if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n", itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.c_str());
+                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name for message: '%s', Raw string: '%s')\n", 
+                                   itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.c_str(), itemName.c_str());
                             if (!itemName.empty())
                             {
-                                // Use plain text instead of hyperlink
+                                // Test with a simpler format first to isolate the issue
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You lost: %s", itemName.c_str());
+                                // Then try the original format to see if it’s still failing
                                 ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
                             }
                             else
@@ -115,10 +118,13 @@ public:
                         if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n", itemName.c_str(), pItem->GetEntry(), i, itemName.c_str());
+                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name for message: '%s', Raw string: '%s')\n", 
+                                   itemName.c_str(), pItem->GetEntry(), i, itemName.c_str(), itemName.c_str());
                             if (!itemName.empty())
                             {
-                                // Use plain text instead of hyperlink
+                                // Test with a simpler format first
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You lost: %s", itemName.c_str());
+                                // Then try the original format
                                 ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
                             }
                             else
@@ -145,10 +151,13 @@ public:
                                 if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                                 {
                                     std::string itemName = pItem->GetTemplate()->Name1;
-                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name for message: '%s')\n", itemName.c_str(), pItem->GetEntry(), i, j, itemName.c_str());
+                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name for message: '%s', Raw string: '%s')\n", 
+                                           itemName.c_str(), pItem->GetEntry(), i, j, itemName.c_str(), itemName.c_str());
                                     if (!itemName.empty())
                                     {
-                                        // Use plain text instead of hyperlink
+                                        // Test with a simpler format first
+                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You lost: %s", itemName.c_str());
+                                        // Then try the original format
                                         ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your %s", itemName.c_str());
                                     }
                                     else
