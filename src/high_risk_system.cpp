@@ -9,7 +9,7 @@
 #include "Chat.h"
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 179697
+#define GOB_CHEST 123330 // Custom chest with data1 = 0, no default loot
 
 void ReskillCheck(Player* killer, Player* killed)
 {
@@ -47,16 +47,19 @@ public:
             {
                 killer->AddGameObject(go);
                 go->SetOwnerGUID(ObjectGuid::Empty);
-                go->loot.clear(); // Clear default loot
+                go->loot.clear(); // Extra precaution, though data1 = 0 should ensure no default loot
 
+                // Equipment slots
                 for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
                 {
                     if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
                         if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
-                            ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", 
-                                pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
+                            std::string itemName = pItem->GetTemplate()->Name1;
+                            printf("Removing equipped item: %s (Entry: %u, Slot: %u)\n", itemName.c_str(), pItem->GetEntry(), pItem->GetSlot());
+                            ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                pItem->GetEntry(), itemName.c_str());
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                             killed->DestroyItem(INVENTORY_SLOT_BAG_0, pItem->GetSlot(), true);
                             count++;
@@ -64,14 +67,17 @@ public:
                     }
                 }
 
+                // Main inventory
                 for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END && count < 2; ++i)
                 {
                     if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
                         if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
-                            ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", 
-                                pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
+                            std::string itemName = pItem->GetTemplate()->Name1;
+                            printf("Removing inventory item: %s (Entry: %u, Slot: %u)\n", itemName.c_str(), pItem->GetEntry(), i);
+                            ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                pItem->GetEntry(), itemName.c_str());
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                             killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
                             count++;
@@ -79,6 +85,7 @@ public:
                     }
                 }
 
+                // Bags
                 for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END && count < 2; ++i)
                 {
                     if (Bag* bag = killed->GetBagByPos(i))
@@ -89,8 +96,10 @@ public:
                             {
                                 if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                                 {
-                                    ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", 
-                                        pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
+                                    std::string itemName = pItem->GetTemplate()->Name1;
+                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u)\n", itemName.c_str(), pItem->GetEntry(), i, j);
+                                    ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                        pItem->GetEntry(), itemName.c_str());
                                     go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                                     killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
                                     count++;
@@ -99,6 +108,8 @@ public:
                         }
                     }
                 }
+
+                printf("Chest loot count: %u\n", go->loot.items.size()); // Debug final loot count
             }
         }
     }
