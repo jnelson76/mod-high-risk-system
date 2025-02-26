@@ -10,7 +10,7 @@
 #include "GameObject.h" // For GO_STATE_READY and GAMEOBJECT_FLAGS
 
 #define SPELL_SICKNESS 15007
-#define GOB_CHEST 179697 // Supply Crate (Gurubashi), cleared loot, should be safe
+#define GOB_CHEST 179697 // Heavy Junkbox, cleared loot table
 
 void ReskillCheck(Player* killer, Player* killed)
 {
@@ -70,9 +70,17 @@ public:
                         if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing equipped item: %s (Entry: %u, Slot: %u)\n", itemName.c_str(), pItem->GetEntry(), pItem->GetSlot());
-                            ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
-                                pItem->GetEntry(), itemName.c_str());
+                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name from DB: '%s')\n", itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.empty() ? "EMPTY" : itemName.c_str());
+                            if (!itemName.empty())
+                            {
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                    pItem->GetEntry(), itemName.c_str());
+                            }
+                            else
+                            {
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
+                                printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
+                            }
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                             killed->DestroyItem(INVENTORY_SLOT_BAG_0, pItem->GetSlot(), true);
                             count++;
@@ -88,9 +96,17 @@ public:
                         if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing inventory item: %s (Entry: %u, Slot: %u)\n", itemName.c_str(), pItem->GetEntry(), i);
-                            ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
-                                pItem->GetEntry(), itemName.c_str());
+                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name from DB: '%s')\n", itemName.c_str(), pItem->GetEntry(), i, itemName.empty() ? "EMPTY" : itemName.c_str());
+                            if (!itemName.empty())
+                            {
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                    pItem->GetEntry(), itemName.c_str());
+                            }
+                            else
+                            {
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
+                                printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
+                            }
                             go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                             killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
                             count++;
@@ -110,9 +126,17 @@ public:
                                 if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                                 {
                                     std::string itemName = pItem->GetTemplate()->Name1;
-                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u)\n", itemName.c_str(), pItem->GetEntry(), i, j);
-                                    ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
-                                        pItem->GetEntry(), itemName.c_str());
+                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name from DB: '%s')\n", itemName.c_str(), pItem->GetEntry(), i, j, itemName.empty() ? "EMPTY" : itemName.c_str());
+                                    if (!itemName.empty())
+                                    {
+                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                                            pItem->GetEntry(), itemName.c_str());
+                                    }
+                                    else
+                                    {
+                                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost an item (Entry: %u, No Name)", pItem->GetEntry());
+                                        printf("Warning: Item name is empty for entry %u\n", pItem->GetEntry());
+                                    }
                                     go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                                     killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
                                     count++;
