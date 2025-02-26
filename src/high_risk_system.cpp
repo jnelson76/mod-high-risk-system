@@ -1,185 +1,72 @@
-/*
-*   Copyright (C) AstoriaCore 2021 | This piece of Code was customly coded by frytiks
-*   for the AstoriaCore Team and is fully ported over from TrinityCore to AzerothCore.
-*   It has multiple Bugfixes, Performance and Efficiency Updates! ~ Lushen 
-*/
-
-#include "Player.h"
-#include "Creature.h"
-#include "AccountMgr.h"
-#include "ScriptMgr.h"
-#include "Define.h"
-#include "Map.h"
-#include "Pet.h"
-#include "Item.h"
-#include "Chat.h"
-
-#define SPELL_SICKNESS 15007
-#define GOB_CHEST 179697
-
-void ReskillCheck(Player* killer, Player* killed)
+void OnPVPKill(Player* killer, Player* killed)
 {
-    // if killer have same ip as killed or if player kill self dont spawn chest
-    if (killer->GetSession()->GetRemoteAddress() == killed->GetSession()->GetRemoteAddress() || killer->GetGUID() == killed->GetGUID())
+    if (!roll_chance_i(70)) // 70% chance to proceed
         return;
 
-    // if killer is not a player dont drop
-    if (!killer->GetGUID().IsPlayer())
-        return;
+    ReskillCheck(killer, killed); // Apply your checks
 
-    // if player have sickness, dont drop loot
-    if (killed->HasAura(SPELL_SICKNESS))
-        return;
-
-    // if player is above 5 levels or more, dont drop loot
-    if (killer->GetLevel() - 5 >= killed->GetLevel())
-        return;
-
-    // if player is in sanctuary zone dont drop loot
-    AreaTableEntry const* area = sAreaTableStore.LookupEntry(killed->GetAreaId());
-    AreaTableEntry const* area2 = sAreaTableStore.LookupEntry(killer->GetAreaId());
-
-    if (area->IsSanctuary() || area2->IsSanctuary())
-        return;
-}
-
-class HighRiskSystem : public PlayerScript
-{
-public:
-    HighRiskSystem() : PlayerScript("HighRiskSystem") {}
-
-    void OnPVPKill(Player* killer, Player* killed)
+    if (!killed->IsAlive()) // Ensure player is dead
     {
-        if (!roll_chance_i(70))
-            return;
+        uint32 count = 0;
 
-        ReskillCheck(killer, killed);
-
-        if (!killed->IsAlive())
+        // Spawn chest and clear its default loot
+        if (GameObject* go = killer->SummonGameObject(GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ(), killed->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 300))
         {
-            uint32 prev = 0;
+            killer->AddGameObject(go);
+            go->SetOwnerGUID(ObjectGuid::Empty);
+            go->loot.clear(); // Clear default loot table
 
-            uint32 count = 0;
-
-            if (GameObject* go = killer->SummonGameObject(GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ(), killed->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 300))
+            // Equipment slots
+            for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
             {
-                killer->AddGameObject(go);
-
-                go->SetOwnerGUID(ObjectGuid::Empty);
-
-                for (int i = urand(0, 17); i < EQUIPMENT_SLOT_END; ++i)
-
-                    /* Equipment Set first */
-                    for (uint8 i = urand(0, 17); i < EQUIPMENT_SLOT_END; ++i)
-                    {
-                        if (count >= 2) // if there is 2 or more items stop for
-                            if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
-                            {
-                                if (pItem->GetTemplate() && (!pItem->IsEquipped() || pItem->GetTemplate()->Quality < ITEM_QUALITY_UNCOMMON))
-                                    continue;
-
-                                uint8 slot = pItem->GetSlot();
-
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
-
-                                LootStoreItem storeItem = LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1);
-
-                                go->loot.AddItem(storeItem);
-
-                                killed->DestroyItem(INVENTORY_SLOT_BAG_0, slot, true);
-
-                                prev = i;
-
-                                count++;
-
-                                break;
-                            }
-                    }
-
-                for (uint8 i = urand(0, 17); i < EQUIPMENT_SLOT_END; ++i)
+                if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                 {
-                    if (!roll_chance_i(70))
-                        break;
-
-                    if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+                    if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Only uncommon or higher
                     {
-                        if (pItem->GetTemplate() && (!pItem->IsEquipped() || pItem->GetTemplate()->Quality < ITEM_QUALITY_UNCOMMON))
-                            continue;
+                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", 
+                            pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
 
-                        if (prev == i)
-                            continue;
-
-                        uint8 slot = pItem->GetSlot();
-
-                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
-
-                        LootStoreItem storeItem = LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1);
-
-                        go->loot.AddItem(storeItem);
-
-                        killed->DestroyItem(INVENTORY_SLOT_BAG_0, slot, true);
-
-                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your [%s]", pItem->GetTemplate()->Name1.c_str());
-
-                        prev = 0;
-
+                        go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
+                        killed->DestroyItem(INVENTORY_SLOT_BAG_0, pItem->GetSlot(), true);
                         count++;
-
-                        break;
                     }
                 }
+            }
 
-                /* Main bag and bagpacks */
-                for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
+            // Inventory and bags (if less than 2 items added)
+            for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END && count < 2; ++i)
+            {
+                if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                 {
-                    if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+                    if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                     {
-                        if (count >= 2)
-                            break;
+                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", 
+                            pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
 
-                        if (pItem->GetTemplate() && pItem->GetTemplate()->Quality < ITEM_QUALITY_UNCOMMON)
-                            continue;
-
-                        ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
-
-                        LootStoreItem storeItem = LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1);
-
-                        go->loot.AddItem(storeItem);
-
+                        go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                         killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
-
                         count++;
-
-                        break;
                     }
                 }
+            }
 
-                //Other bags:
-                for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+            // Bags
+            for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END && count < 2; ++i)
+            {
+                if (Bag* bag = killed->GetBagByPos(i))
                 {
-                    if (Bag* bag = killed->GetBagByPos(i))
+                    for (uint32 j = 0; j < bag->GetBagSize() && count < 2; ++j)
                     {
-                        for (uint32 j = 0; j < bag->GetBagSize(); ++j)
+                        if (Item* pItem = killed->GetItemByPos(i, j))
                         {
-                            if (Item* pItem = killed->GetItemByPos(i, j))
+                            if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                             {
-                                if (count >= 2)
-                                    break;
+                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", 
+                                    pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
 
-                                if (pItem->GetTemplate() && pItem->GetTemplate()->Quality < ITEM_QUALITY_UNCOMMON)
-                                    continue;
-
-                                ChatHandler(killed->GetSession()).PSendSysMessage("|cffDA70D6You have lost your |cffffffff|Hitem:%d:0:0:0:0:0:0:0:0|h[%s]|h|r", pItem->GetEntry(), pItem->GetTemplate()->Name1.c_str());
-
-                                LootStoreItem storeItem = LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1);
-
-                                go->loot.AddItem(storeItem);
-
+                                go->loot.AddItem(LootStoreItem(pItem->GetEntry(), 0, 100, 0, LOOT_MODE_DEFAULT, 0, 1, 1));
                                 killed->DestroyItemCount(pItem->GetEntry(), pItem->GetCount(), true, false);
-
                                 count++;
-
-                                break;
                             }
                         }
                     }
@@ -187,9 +74,4 @@ public:
             }
         }
     }
-};
-
-void AddSC_HighRiskSystems()
-{
-    new HighRiskSystem();
 }
