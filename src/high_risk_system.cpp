@@ -36,7 +36,7 @@ public:
     void OnPVPKill(Player* killer, Player* killed)
     {
         printf("OnPVPKill triggered for killer GUID: %u, killed GUID: %u\n", killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
-
+        ChatHandler(killer->GetSession()).PSendSysMessage("PVP Kill triggered!");
         if (!roll_chance_i(70))
         {
             printf("Failed 70%% roll chance\n");
