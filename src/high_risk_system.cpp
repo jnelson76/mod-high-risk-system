@@ -8,6 +8,7 @@
 #include "Item.h"
 #include "Chat.h"
 #include "GameObject.h" // For GO_STATE_READY and GAMEOBJECT_FLAGS
+#include "Unit.h"
 
 #define SPELL_SICKNESS 15007
 #define GOB_CHEST 179697 // Heavy Junkbox, cleared loot table
@@ -28,13 +29,20 @@ void ReskillCheck(Player* killer, Player* killed)
         return;
 }
 
-class HighRiskSystem : public PlayerScript
+class HighRiskSystem : public UnitScript
 {
 public:
     HighRiskSystem() : PlayerScript("HighRiskSystem") {}
 
     void OnPVPKill(Player* killer, Player* killed)
     {
+        // Cast to Player since your logic needs Player-specific methods
+        if (!killer->ToPlayer() || !killed->ToPlayer())
+            return;
+
+        Player* playerKiller = killer->ToPlayer();
+        Player* playerKilled = killed->ToPlayer();
+        
         printf("OnPVPKill triggered for killer GUID: %u, killed GUID: %u\n", killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
         ChatHandler(killer->GetSession()).PSendSysMessage("PVP Kill triggered!");
         if (!roll_chance_i(70))
