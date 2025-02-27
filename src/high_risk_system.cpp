@@ -33,7 +33,7 @@ class HighRiskSystem : public PlayerScript
 public:
     HighRiskSystem() : PlayerScript("HighRiskSystem") {}
 
-    void OnPVPKill(Player* killer, Player* killed) override
+    void OnPVPKill(Player* killer, Player* killed)
     {
         printf("OnPVPKill triggered for killer GUID: %u, killed GUID: %u\n", killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
 
