@@ -60,7 +60,7 @@ public:
                 go->loot.clear(); // Ensure no default loot
                 go->SetGoState(GO_STATE_READY); // Ensure it’s lootable
                 go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_COND); // Ensure it’s interactive
-                go->SetRespawnTime(86400); // Set a 24-hour respawn time to prevent despawning
+                go->SetRespawnTime(300); // Set a 24-hour respawn time to prevent despawning
                 printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS)); // Debug state and flags
 
                 // Equipment slots
