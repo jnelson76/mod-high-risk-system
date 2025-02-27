@@ -1,14 +1,15 @@
-#include "Player.h"
+#include "ScriptMgr.h"
+#include "ScriptObject.h" // For UnitScript base class
+#include "Unit.h"         // For Unit and ToPlayer()
+#include "Player.h"       // For Player class
 #include "Creature.h"
 #include "AccountMgr.h"
-#include "ScriptMgr.h"
 #include "Define.h"
 #include "Map.h"
 #include "Pet.h"
 #include "Item.h"
 #include "Chat.h"
 #include "GameObject.h"
-#include "Unit.h" // For UnitScript and ToPlayer()
 
 #define SPELL_SICKNESS 15007
 #define GOB_CHEST 179697 // Heavy Junkbox, cleared loot table
@@ -71,18 +72,18 @@ public:
                 go->loot.clear(); // Ensure no default loot
                 go->SetGoState(GO_STATE_READY); // Ensure it’s lootable
                 go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE | GO_FLAG_IN_USE | GO_FLAG_DESTROYED | GO_FLAG_INTERACT_COND); // Ensure it’s interactive
-                go->SetRespawnTime(300); // Set a 5-minute respawn time (300 seconds)
-                printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS)); // Debug state and flags
+                go->SetRespawnTime(300); // 5-minute respawn time
+                printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS));
 
                 // Equipment slots
                 for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
                 {
                     if (Item* pItem = playerKilled->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
-                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Keeps loot consistency for uncommon (2) and rare (3) items
+                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n", 
+                            printf("Removing equipped item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n",
                                    itemName.c_str(), pItem->GetEntry(), pItem->GetSlot(), itemName.c_str());
                             if (!itemName.empty())
                             {
@@ -107,10 +108,10 @@ public:
                 {
                     if (Item* pItem = playerKilled->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
-                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Keeps loot consistency
+                        if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                         {
                             std::string itemName = pItem->GetTemplate()->Name1;
-                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n", 
+                            printf("Removing inventory item: %s (Entry: %u, Slot: %u, Name for message: '%s')\n",
                                    itemName.c_str(), pItem->GetEntry(), i, itemName.c_str());
                             if (!itemName.empty())
                             {
@@ -139,10 +140,10 @@ public:
                         {
                             if (Item* pItem = playerKilled->GetItemByPos(i, j))
                             {
-                                if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON) // Keeps loot consistency
+                                if (pItem->GetTemplate()->Quality >= ITEM_QUALITY_UNCOMMON)
                                 {
                                     std::string itemName = pItem->GetTemplate()->Name1;
-                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name for message: '%s')\n", 
+                                    printf("Removing bag item: %s (Entry: %u, Bag: %u, Slot: %u, Name for message: '%s')\n",
                                            itemName.c_str(), pItem->GetEntry(), i, j, itemName.c_str());
                                     if (!itemName.empty())
                                     {
