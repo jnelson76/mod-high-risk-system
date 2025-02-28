@@ -9,6 +9,7 @@
 #include "Item.h"
 #include "Chat.h"
 #include "GameObject.h"
+#include "Config.h" // For sConfigMgr
 
 #define SPELL_SICKNESS 15007
 #define GOB_CHEST 179697 // Heavy Junkbox, cleared loot table
@@ -36,7 +37,7 @@ public:
 
     void OnPlayerPVPKill(Player* killer, Player* killed) override
     {
-        if (!killer || !killed) // Null check
+        if (!killer || !killed)
         {
             printf("OnPlayerPVPKill skipped: killer or killed is null\n");
             return;
@@ -45,9 +46,11 @@ public:
         printf("OnPlayerPVPKill triggered for killer GUID: %u, killed GUID: %u\n", killer->GetGUID().GetCounter(), killed->GetGUID().GetCounter());
         ChatHandler(killer->GetSession()).PSendSysMessage("PVP Kill triggered!");
 
-        if (!roll_chance_i(70))
+        // Load drop chance from config (default 70 if not found)
+        uint32 dropChance = sConfigMgr->GetIntDefault("HighRiskSystem.DropChance", 70);
+        if (!roll_chance_i(dropChance))
         {
-            printf("Failed 70%% roll chance\n");
+            printf("Failed %u%% roll chance\n", dropChance);
             return;
         }
 
@@ -57,6 +60,8 @@ public:
         if (!killed->IsAlive())
         {
             printf("Killed player is dead, proceeding\n");
+            // Load max items from config (default 2 if not found)
+            uint32 maxItems = sConfigMgr->GetIntDefault("HighRiskSystem.MaxItems", 2);
             uint32 count = 0;
 
             GameObject* go = killer->SummonGameObject(GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ(), killed->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 300);
@@ -72,7 +77,7 @@ public:
                 printf("Chest state set to %u, flags: %u\n", go->GetGoState(), go->GetUInt32Value(GAMEOBJECT_FLAGS));
 
                 // Equipment slots
-                for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < 2; ++i)
+                for (uint8 i = 0; i < EQUIPMENT_SLOT_END && count < maxItems; ++i)
                 {
                     if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
@@ -100,7 +105,7 @@ public:
                 }
 
                 // Main inventory
-                for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END && count < 2; ++i)
+                for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END && count < maxItems; ++i)
                 {
                     if (Item* pItem = killed->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
                     {
@@ -128,11 +133,11 @@ public:
                 }
 
                 // Bags
-                for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END && count < 2; ++i)
+                for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END && count < maxItems; ++i)
                 {
                     if (Bag* bag = killed->GetBagByPos(i))
                     {
-                        for (uint32 j = 0; j < bag->GetBagSize() && count < 2; ++j)
+                        for (uint32 j = 0; j < bag->GetBagSize() && count < maxItems; ++j)
                         {
                             if (Item* pItem = killed->GetItemByPos(i, j))
                             {
