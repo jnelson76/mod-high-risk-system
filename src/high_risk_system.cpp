@@ -47,7 +47,7 @@ public:
         ChatHandler(killer->GetSession()).PSendSysMessage("PVP Kill triggered!");
 
         // Load drop chance from config (default 70 if not found)
-        uint32 dropChance = sConfigMgr->GetIntDefault("HighRiskSystem.DropChance", 70);
+        uint32 dropChance = sConfigMgr->GetOption<int>("HighRiskSystem.DropChance", 70);
         if (!roll_chance_i(dropChance))
         {
             printf("Failed %u%% roll chance\n", dropChance);
@@ -61,7 +61,7 @@ public:
         {
             printf("Killed player is dead, proceeding\n");
             // Load max items from config (default 2 if not found)
-            uint32 maxItems = sConfigMgr->GetIntDefault("HighRiskSystem.MaxItems", 2);
+            uint32 maxItems = sConfigMgr->GetOption<int>("HighRiskSystem.MaxItems", 2);
             uint32 count = 0;
 
             GameObject* go = killer->SummonGameObject(GOB_CHEST, killed->GetPositionX(), killed->GetPositionY(), killed->GetPositionZ(), killed->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 300);
